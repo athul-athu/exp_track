@@ -217,3 +217,46 @@ def create_transaction(request):
             'message': 'Invalid transaction data',
             'errors': serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def list_transactions(request):
+    """
+    List all transactions for a user based on their token.
+    Token should be passed in the Authorization header as 'Token <token>'
+    """
+    # Get token from Authorization header
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Token '):
+        return Response({
+            'status': 'error',
+            'message': 'Authorization header with Token is required'
+        }, status=status.HTTP_401_UNAUTHORIZED)
+    
+    token = auth_header.split(' ')[1]
+    
+    try:
+        # Find user by token
+        user = UserDetails.objects.get(token=token)
+    except ObjectDoesNotExist:
+        return Response({
+            'status': 'error',
+            'message': 'Invalid token or user not found'
+        }, status=status.HTTP_401_UNAUTHORIZED)
+    
+    try:
+        # Get all transactions for the user
+        transactions = TransactionDetails.objects.filter(user=user).order_by('-date')
+        serializer = TransactionDetailsSerializer(transactions, many=True)
+        
+        return Response({
+            'status': 'success',
+            'message': 'Transactions retrieved successfully',
+            'total_transactions': len(serializer.data),
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({
+            'status': 'error',
+            'message': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

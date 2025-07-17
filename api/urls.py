@@ -1,6 +1,9 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import ItemViewSet, UserDetailsViewSet, api_root, create_user, get_all_users, login_user, create_transaction
+from .views import (
+    ItemViewSet, UserDetailsViewSet, api_root, create_user, 
+    get_all_users, login_user, create_transaction, list_transactions
+)
 
 router = DefaultRouter()
 router.register(r'items', ItemViewSet, basename='item')
@@ -13,4 +16,5 @@ urlpatterns = [
     path('v1/get_all_users/', get_all_users, name='get-all-users'),
     path('v1/login/', login_user, name='login_user'),
     path('v1/create_transaction/', create_transaction, name='create-transaction'),
+    path('v1/transactions/', list_transactions, name='list-transactions'),
 ] 
